@@ -1,55 +1,32 @@
-import { Typography, Container, Button, Grid } from "@mui/material";
-import { Link } from "react-router-dom";
+import { Container, Typography, Box } from "@mui/material";
 
 function Home() {
   return (
-    <Container className="container">
-      <Typography variant="h3" gutterBottom align="center" sx={{ mt: 4 }}>
+    <Container className="container" sx={{ mt: 4, textAlign: "center" }}>
+      <Typography
+        variant="h3"
+        gutterBottom
+        sx={{ fontSize: { xs: "1.5rem", sm: "2rem", md: "2.5rem" } }}
+      >
         Bienvenue sur MamanApp-Web
       </Typography>
       <Typography
         variant="h6"
-        align="center"
         color="text.secondary"
-        gutterBottom
+        sx={{ fontSize: { xs: "1rem", sm: "1.25rem" } }}
       >
-        Gérez vos classes, élèves, matières, notes et bulletins en ligne.
+        Gérez facilement les classes, élèves, matières, notes et générez des
+        bulletins scolaires.
       </Typography>
-      <Grid container spacing={2} justifyContent="center" sx={{ mt: 4 }}>
-        <Grid item xs={12} sm={4}>
-          <Button
-            variant="contained"
-            component={Link}
-            to="/classes"
-            fullWidth
-            sx={{ py: 2 }}
-          >
-            Gérer les Classes
-          </Button>
-        </Grid>
-        <Grid item xs={12} sm={4}>
-          <Button
-            variant="contained"
-            component={Link}
-            to="/students"
-            fullWidth
-            sx={{ py: 2 }}
-          >
-            Gérer les Élèves
-          </Button>
-        </Grid>
-        <Grid item xs={12} sm={4}>
-          <Button
-            variant="contained"
-            component={Link}
-            to="/bulletins"
-            fullWidth
-            sx={{ py: 2 }}
-          >
-            Générer des Bulletins
-          </Button>
-        </Grid>
-      </Grid>
+      <Box sx={{ mt: 4 }}>
+        <Typography
+          variant="body1"
+          sx={{ fontSize: { xs: "0.9rem", sm: "1rem" } }}
+        >
+          Commencez par ajouter une classe ou explorez les autres sections via
+          la barre de navigation.
+        </Typography>
+      </Box>
     </Container>
   );
 }

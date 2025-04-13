@@ -21,18 +21,22 @@ function BulletinGenerator() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const studentSnapshot = await getDocs(collection(db, "students"));
-      const gradeSnapshot = await getDocs(collection(db, "grades"));
-      const subjectSnapshot = await getDocs(collection(db, "subjects"));
-      setStudents(
-        studentSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-      );
-      setGrades(
-        gradeSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-      );
-      setSubjects(
-        subjectSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-      );
+      try {
+        const studentSnapshot = await getDocs(collection(db, "students"));
+        const gradeSnapshot = await getDocs(collection(db, "grades"));
+        const subjectSnapshot = await getDocs(collection(db, "subjects"));
+        setStudents(
+          studentSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+        );
+        setGrades(
+          gradeSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+        );
+        setSubjects(
+          subjectSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+        );
+      } catch (e) {
+        toast.error("Erreur lors du chargement des données");
+      }
     };
     fetchData();
   }, []);
@@ -49,23 +53,33 @@ function BulletinGenerator() {
 
     // Entête
     doc.setFontSize(16);
-    doc.text("Bulletin de Notes", 10, 10);
+    doc.text("Bulletin de Notes", 105, 10, { align: "center" });
     doc.setFontSize(12);
     doc.text("École: École Primaire Maman Koudjou", 10, 20);
     doc.text("Enseignant: Maman Koudjou", 10, 30);
     doc.text(`Élève: ${student.name}`, 10, 40);
     doc.text(`Parent: ${student.parentName || "Non spécifié"}`, 10, 50);
 
+    // Ajouter la photo si disponible
+    if (student.photoUrl) {
+      try {
+        doc.addImage(student.photoUrl, "JPEG", 160, 20, 30, 30);
+      } catch (e) {
+        console.warn("Impossible de charger la photo:", e);
+      }
+    }
+
     // Notes
     let y = 70;
     let total = 0;
     let coefSum = 0;
+    doc.setFontSize(10);
     doc.text("Matière | Note | Coef | Total", 10, y);
     y += 10;
     studentGrades.forEach((grade) => {
       const subject = subjects.find((s) => s.id === grade.subjectId);
       const coef = subject?.coefficient || 1;
-      const noteTotal = grade.value * coef;
+      const noteTotal = (grade.value * coef).toFixed(2);
       doc.text(
         `${subject?.name || "Inconnu"} | ${
           grade.value
@@ -73,13 +87,14 @@ function BulletinGenerator() {
         10,
         y
       );
-      total += noteTotal;
+      total += grade.value * coef;
       coefSum += coef;
       y += 10;
     });
 
     // Moyenne élève
     const studentAverage = coefSum > 0 ? (total / coefSum).toFixed(2) : 0;
+    doc.setFontSize(12);
     doc.text(`Moyenne de l'élève: ${studentAverage}/20`, 10, y);
     y += 10;
 
@@ -113,10 +128,10 @@ function BulletinGenerator() {
     y += 20;
 
     // Signatures
+    doc.setFontSize(10);
     doc.text("Signature Enseignant: ________________", 10, y);
-    doc.text("Signature Parent: ________________", 100, y);
-    y += 10;
-    doc.text("Signature Directeur: ________________", 10, y);
+    doc.text("Signature Parent: ________________", 80, y);
+    doc.text("Signature Directeur: ________________", 150, y);
 
     // Sauvegarder
     doc.save(`${student.name}_bulletin.pdf`);
@@ -124,19 +139,31 @@ function BulletinGenerator() {
   };
 
   return (
-    <Grid container spacing={2}>
+    <Grid container spacing={2} sx={{ mt: 2 }}>
       <Grid item xs={12}>
-        <Typography variant="h5">Générer un Bulletin</Typography>
+        <Typography
+          variant="h5"
+          sx={{ fontSize: { xs: "1.25rem", sm: "1.5rem" }, mb: 2 }}
+        >
+          Générer un Bulletin
+        </Typography>
       </Grid>
       <Grid item xs={12} sm={6}>
-        <FormControl fullWidth>
-          <InputLabel>Élève</InputLabel>
+        <FormControl fullWidth size="small">
+          <InputLabel sx={{ fontSize: { xs: "0.9rem", sm: "1rem" } }}>
+            Élève
+          </InputLabel>
           <Select
             value={selectedStudent}
             onChange={(e) => setSelectedStudent(e.target.value)}
+            sx={{ fontSize: { xs: "0.9rem", sm: "1rem" } }}
           >
             {students.map((student) => (
-              <MenuItem key={student.id} value={student.id}>
+              <MenuItem
+                key={student.id}
+                value={student.id}
+                sx={{ fontSize: { xs: "0.9rem", sm: "1rem" } }}
+              >
                 {student.name}
               </MenuItem>
             ))}
@@ -148,7 +175,12 @@ function BulletinGenerator() {
           variant="contained"
           onClick={generateBulletin}
           fullWidth
-          sx={{ height: "100%" }}
+          sx={{
+            height: "100%",
+            fontSize: { xs: "0.75rem", sm: "0.875rem" },
+            bgcolor: "#1976d2",
+            "&:hover": { bgcolor: "#1565c0" },
+          }}
         >
           Générer PDF
         </Button>

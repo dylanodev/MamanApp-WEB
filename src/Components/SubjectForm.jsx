@@ -20,8 +20,12 @@ function SubjectForm({ onSubjectAdded }) {
 
   useEffect(() => {
     const fetchClasses = async () => {
-      const snapshot = await getDocs(collection(db, "classes"));
-      setClasses(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+      try {
+        const snapshot = await getDocs(collection(db, "classes"));
+        setClasses(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+      } catch (e) {
+        toast.error("Erreur lors du chargement des classes");
+      }
     };
     fetchClasses();
   }, []);
@@ -46,14 +50,14 @@ function SubjectForm({ onSubjectAdded }) {
       setCoefficient("");
       setClassId("");
       toast.success("Matière ajoutée avec succès");
-      onSubjectAdded();
+      if (onSubjectAdded) onSubjectAdded();
     } catch (e) {
       toast.error("Erreur lors de l'ajout de la matière");
     }
   };
 
   return (
-    <Grid container spacing={2} sx={{ mb: 4 }}>
+    <Grid container spacing={2} sx={{ mb: { xs: 2, sm: 4 } }}>
       <Grid item xs={12} sm={4}>
         <TextField
           label="Nom de la matière"
@@ -61,6 +65,10 @@ function SubjectForm({ onSubjectAdded }) {
           onChange={(e) => setName(e.target.value)}
           fullWidth
           variant="outlined"
+          size="small"
+          sx={{
+            "& .MuiInputBase-input": { fontSize: { xs: "0.9rem", sm: "1rem" } },
+          }}
         />
       </Grid>
       <Grid item xs={12} sm={3}>
@@ -71,14 +79,28 @@ function SubjectForm({ onSubjectAdded }) {
           fullWidth
           variant="outlined"
           type="number"
+          size="small"
+          sx={{
+            "& .MuiInputBase-input": { fontSize: { xs: "0.9rem", sm: "1rem" } },
+          }}
         />
       </Grid>
       <Grid item xs={12} sm={3}>
-        <FormControl fullWidth>
-          <InputLabel>Classe</InputLabel>
-          <Select value={classId} onChange={(e) => setClassId(e.target.value)}>
+        <FormControl fullWidth size="small">
+          <InputLabel sx={{ fontSize: { xs: "0.9rem", sm: "1rem" } }}>
+            Classe
+          </InputLabel>
+          <Select
+            value={classId}
+            onChange={(e) => setClassId(e.target.value)}
+            sx={{ fontSize: { xs: "0.9rem", sm: "1rem" } }}
+          >
             {classes.map((cls) => (
-              <MenuItem key={cls.id} value={cls.id}>
+              <MenuItem
+                key={cls.id}
+                value={cls.id}
+                sx={{ fontSize: { xs: "0.9rem", sm: "1rem" } }}
+              >
                 {cls.name}
               </MenuItem>
             ))}
@@ -90,7 +112,12 @@ function SubjectForm({ onSubjectAdded }) {
           variant="contained"
           onClick={handleAddSubject}
           fullWidth
-          sx={{ height: "100%" }}
+          sx={{
+            height: "100%",
+            fontSize: { xs: "0.75rem", sm: "0.875rem" },
+            bgcolor: "#1976d2",
+            "&:hover": { bgcolor: "#1565c0" },
+          }}
         >
           Ajouter
         </Button>

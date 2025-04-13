@@ -1,141 +1,96 @@
 import { useState, useEffect } from "react";
-import { collection, getDocs, addDoc } from "firebase/firestore";
+import { collection, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
 import {
-  TextField,
-  Button,
-  MenuItem,
-  Select,
-  FormControl,
-  InputLabel,
+  Container,
   Typography,
   List,
   ListItem,
   ListItemText,
+  Divider,
 } from "@mui/material";
+import GradeForm from "./components/GradeForm";
 
 function Grades() {
+  const [grades, setGrades] = useState([]);
   const [students, setStudents] = useState([]);
   const [subjects, setSubjects] = useState([]);
-  const [selectedStudent, setSelectedStudent] = useState("");
-  const [selectedSubject, setSelectedSubject] = useState("");
-  const [gradeValue, setGradeValue] = useState("");
-  const [grades, setGrades] = useState([]);
-  const [error, setError] = useState("");
 
-  // Charger les élèves, matières et notes
-  useEffect(() => {
-    const fetchData = async () => {
+  const fetchData = async () => {
+    try {
+      const gradeSnapshot = await getDocs(collection(db, "grades"));
       const studentSnapshot = await getDocs(collection(db, "students"));
       const subjectSnapshot = await getDocs(collection(db, "subjects"));
-      const gradeSnapshot = await getDocs(collection(db, "grades"));
+      setGrades(
+        gradeSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+      );
       setStudents(
         studentSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
       );
       setSubjects(
         subjectSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
       );
-      setGrades(
-        gradeSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-      );
-    };
-    fetchData();
-  }, []);
-
-  // Ajouter une note
-  const handleAddGrade = async () => {
-    if (!selectedStudent || !selectedSubject || !gradeValue) {
-      setError("Remplissez tous les champs");
-      return;
-    }
-    const value = parseFloat(gradeValue);
-    if (isNaN(value) || value < 0 || value > 20) {
-      setError("La note doit être entre 0 et 20");
-      return;
-    }
-    try {
-      await addDoc(collection(db, "grades"), {
-        studentId: selectedStudent,
-        subjectId: selectedSubject,
-        value,
-      });
-      setGradeValue("");
-      setSelectedStudent("");
-      setSelectedSubject("");
-      setError("");
-      const gradeSnapshot = await getDocs(collection(db, "grades"));
-      setGrades(
-        gradeSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-      );
     } catch (e) {
-      setError("Erreur lors de l'ajout");
+      console.error("Erreur lors du chargement des données:", e);
     }
   };
 
+  useEffect(() => {
+    fetchData();
+  }, []);
+
   return (
-    <div style={{ padding: "20px" }}>
-      <Typography variant="h4">Gestion des Notes</Typography>
-      {error && <Typography color="error">{error}</Typography>}
-      <FormControl fullWidth style={{ marginTop: "20px" }}>
-        <InputLabel>Élève</InputLabel>
-        <Select
-          value={selectedStudent}
-          onChange={(e) => setSelectedStudent(e.target.value)}
-        >
-          {students.map((student) => (
-            <MenuItem key={student.id} value={student.id}>
-              {student.name}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-      <FormControl fullWidth style={{ marginTop: "20px" }}>
-        <InputLabel>Matière</InputLabel>
-        <Select
-          value={selectedSubject}
-          onChange={(e) => setSelectedSubject(e.target.value)}
-        >
-          {subjects.map((subject) => (
-            <MenuItem key={subject.id} value={subject.id}>
-              {subject.name}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-      <TextField
-        label="Note (0-20)"
-        value={gradeValue}
-        onChange={(e) => setGradeValue(e.target.value)}
-        fullWidth
-        style={{ marginTop: "20px" }}
-        type="number"
-      />
-      <Button
-        variant="contained"
-        onClick={handleAddGrade}
-        style={{ marginTop: "20px" }}
+    <Container className="container">
+      <Typography
+        variant="h4"
+        gutterBottom
+        sx={{ mt: 4, fontSize: { xs: "1.5rem", sm: "2rem" } }}
       >
-        Ajouter
-      </Button>
-      <Typography variant="h6" style={{ marginTop: "20px" }}>
-        Notes
+        Gestion des Notes
+      </Typography>
+      <GradeForm onGradeAdded={fetchData} />
+      <Typography
+        variant="h6"
+        gutterBottom
+        sx={{ fontSize: { xs: "1rem", sm: "1.25rem" } }}
+      >
+        Liste des Notes
       </Typography>
       <List>
-        {grades.map((grade) => {
-          const student = students.find((s) => s.id === grade.studentId);
-          const subject = subjects.find((s) => s.id === grade.subjectId);
-          return (
-            <ListItem key={grade.id}>
-              <ListItemText
-                primary={`${student?.name || "Inconnu"} - ${
-                  subject?.name || "Inconnu"
-                }: ${grade.value}/20`}
-              />
-            </ListItem>
-          );
-        })}
+        {grades.length === 0 ? (
+          <Typography
+            color="text.secondary"
+            sx={{ fontSize: { xs: "0.9rem", sm: "1rem" } }}
+          >
+            Aucune note disponible
+          </Typography>
+        ) : (
+          grades.map((grade) => {
+            const student = students.find((s) => s.id === grade.studentId);
+            const subject = subjects.find((s) => s.id === grade.subjectId);
+            return (
+              <div key={grade.id}>
+                <ListItem>
+                  <ListItemText
+                    primary={`${student?.name || "Inconnu"} - ${
+                      subject?.name || "Inconnu"
+                    }`}
+                    secondary={`Note: ${grade.value}/20`}
+                    primaryTypographyProps={{
+                      fontSize: { xs: "0.9rem", sm: "1rem" },
+                    }}
+                    secondaryTypographyProps={{
+                      fontSize: { xs: "0.8rem", sm: "0.875rem" },
+                    }}
+                  />
+                </ListItem>
+                <Divider />
+              </div>
+            );
+          })
+        )}
       </List>
-    </div>
+    </Container>
   );
 }
 

@@ -21,14 +21,18 @@ function GradeForm({ onGradeAdded }) {
 
   useEffect(() => {
     const fetchData = async () => {
-      const studentSnapshot = await getDocs(collection(db, "students"));
-      const subjectSnapshot = await getDocs(collection(db, "subjects"));
-      setStudents(
-        studentSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-      );
-      setSubjects(
-        subjectSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-      );
+      try {
+        const studentSnapshot = await getDocs(collection(db, "students"));
+        const subjectSnapshot = await getDocs(collection(db, "subjects"));
+        setStudents(
+          studentSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+        );
+        setSubjects(
+          subjectSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+        );
+      } catch (e) {
+        toast.error("Erreur lors du chargement des données");
+      }
     };
     fetchData();
   }, []);
@@ -53,23 +57,30 @@ function GradeForm({ onGradeAdded }) {
       setSelectedSubject("");
       setGradeValue("");
       toast.success("Note ajoutée avec succès");
-      onGradeAdded();
+      if (onGradeAdded) onGradeAdded();
     } catch (e) {
       toast.error("Erreur lors de l'ajout de la note");
     }
   };
 
   return (
-    <Grid container spacing={2} sx={{ mb: 4 }}>
+    <Grid container spacing={2} sx={{ mb: { xs: 2, sm: 4 } }}>
       <Grid item xs={12} sm={4}>
-        <FormControl fullWidth>
-          <InputLabel>Élève</InputLabel>
+        <FormControl fullWidth size="small">
+          <InputLabel sx={{ fontSize: { xs: "0.9rem", sm: "1rem" } }}>
+            Élève
+          </InputLabel>
           <Select
             value={selectedStudent}
             onChange={(e) => setSelectedStudent(e.target.value)}
+            sx={{ fontSize: { xs: "0.9rem", sm: "1rem" } }}
           >
             {students.map((student) => (
-              <MenuItem key={student.id} value={student.id}>
+              <MenuItem
+                key={student.id}
+                value={student.id}
+                sx={{ fontSize: { xs: "0.9rem", sm: "1rem" } }}
+              >
                 {student.name}
               </MenuItem>
             ))}
@@ -77,14 +88,21 @@ function GradeForm({ onGradeAdded }) {
         </FormControl>
       </Grid>
       <Grid item xs={12} sm={3}>
-        <FormControl fullWidth>
-          <InputLabel>Matière</InputLabel>
+        <FormControl fullWidth size="small">
+          <InputLabel sx={{ fontSize: { xs: "0.9rem", sm: "1rem" } }}>
+            Matière
+          </InputLabel>
           <Select
             value={selectedSubject}
             onChange={(e) => setSelectedSubject(e.target.value)}
+            sx={{ fontSize: { xs: "0.9rem", sm: "1rem" } }}
           >
             {subjects.map((subject) => (
-              <MenuItem key={subject.id} value={subject.id}>
+              <MenuItem
+                key={subject.id}
+                value={subject.id}
+                sx={{ fontSize: { xs: "0.9rem", sm: "1rem" } }}
+              >
                 {subject.name}
               </MenuItem>
             ))}
@@ -99,7 +117,11 @@ function GradeForm({ onGradeAdded }) {
           fullWidth
           variant="outlined"
           type="number"
-          inputProps={{ step: "0.1" }}
+          size="small"
+          inputProps={{ step: "0.1", min: "0", max: "20" }}
+          sx={{
+            "& .MuiInputBase-input": { fontSize: { xs: "0.9rem", sm: "1rem" } },
+          }}
         />
       </Grid>
       <Grid item xs={12} sm={2}>
@@ -107,7 +129,12 @@ function GradeForm({ onGradeAdded }) {
           variant="contained"
           onClick={handleAddGrade}
           fullWidth
-          sx={{ height: "100%" }}
+          sx={{
+            height: "100%",
+            fontSize: { xs: "0.75rem", sm: "0.875rem" },
+            bgcolor: "#1976d2",
+            "&:hover": { bgcolor: "#1565c0" },
+          }}
         >
           Ajouter
         </Button>

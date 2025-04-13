@@ -21,8 +21,12 @@ function StudentForm({ onStudentAdded }) {
 
   useEffect(() => {
     const fetchClasses = async () => {
-      const snapshot = await getDocs(collection(db, "classes"));
-      setClasses(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+      try {
+        const snapshot = await getDocs(collection(db, "classes"));
+        setClasses(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+      } catch (e) {
+        toast.error("Erreur lors du chargement des classes");
+      }
     };
     fetchClasses();
   }, []);
@@ -44,14 +48,14 @@ function StudentForm({ onStudentAdded }) {
       setPhotoUrl("");
       setClassId("");
       toast.success("Élève ajouté avec succès");
-      onStudentAdded();
+      if (onStudentAdded) onStudentAdded();
     } catch (e) {
       toast.error("Erreur lors de l'ajout de l'élève");
     }
   };
 
   return (
-    <Grid container spacing={2} sx={{ mb: 4 }}>
+    <Grid container spacing={2} sx={{ mb: { xs: 2, sm: 4 } }}>
       <Grid item xs={12} sm={6}>
         <TextField
           label="Nom de l'élève"
@@ -59,6 +63,10 @@ function StudentForm({ onStudentAdded }) {
           onChange={(e) => setName(e.target.value)}
           fullWidth
           variant="outlined"
+          size="small"
+          sx={{
+            "& .MuiInputBase-input": { fontSize: { xs: "0.9rem", sm: "1rem" } },
+          }}
         />
       </Grid>
       <Grid item xs={12} sm={6}>
@@ -68,6 +76,10 @@ function StudentForm({ onStudentAdded }) {
           onChange={(e) => setParentName(e.target.value)}
           fullWidth
           variant="outlined"
+          size="small"
+          sx={{
+            "& .MuiInputBase-input": { fontSize: { xs: "0.9rem", sm: "1rem" } },
+          }}
         />
       </Grid>
       <Grid item xs={12} sm={6}>
@@ -77,14 +89,28 @@ function StudentForm({ onStudentAdded }) {
           onChange={(e) => setPhotoUrl(e.target.value)}
           fullWidth
           variant="outlined"
+          size="small"
+          sx={{
+            "& .MuiInputBase-input": { fontSize: { xs: "0.9rem", sm: "1rem" } },
+          }}
         />
       </Grid>
       <Grid item xs={12} sm={3}>
-        <FormControl fullWidth>
-          <InputLabel>Classe</InputLabel>
-          <Select value={classId} onChange={(e) => setClassId(e.target.value)}>
+        <FormControl fullWidth size="small">
+          <InputLabel sx={{ fontSize: { xs: "0.9rem", sm: "1rem" } }}>
+            Classe
+          </InputLabel>
+          <Select
+            value={classId}
+            onChange={(e) => setClassId(e.target.value)}
+            sx={{ fontSize: { xs: "0.9rem", sm: "1rem" } }}
+          >
             {classes.map((cls) => (
-              <MenuItem key={cls.id} value={cls.id}>
+              <MenuItem
+                key={cls.id}
+                value={cls.id}
+                sx={{ fontSize: { xs: "0.9rem", sm: "1rem" } }}
+              >
                 {cls.name}
               </MenuItem>
             ))}
@@ -96,7 +122,12 @@ function StudentForm({ onStudentAdded }) {
           variant="contained"
           onClick={handleAddStudent}
           fullWidth
-          sx={{ height: "100%" }}
+          sx={{
+            height: "100%",
+            fontSize: { xs: "0.75rem", sm: "0.875rem" },
+            bgcolor: "#1976d2",
+            "&:hover": { bgcolor: "#1565c0" },
+          }}
         >
           Ajouter
         </Button>
